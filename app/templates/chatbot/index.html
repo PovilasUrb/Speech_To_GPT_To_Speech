@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+</head>
+<body>
+    <h1>Voice-controlled Chatbot</h1>
+    <button id="recordButton">Record</button>
+    <button id="stopButton" disabled>Stop</button>
+    <p id="transcript"></p>
+    <audio id="audioOutput" controls></audio>
+
+    <script>
+        let recordButton = document.getElementById('recordButton');
+        let stopButton = document.getElementById('stopButton');
+        let audioOutput = document.getElementById('audioOutput');
+        let transcript = document.getElementById('transcript');
+
+        let mediaRecorder;
+        let audioChunks = [];
+
+        recordButton.addEventListener('click', () => {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+                    mediaRecorder.start();
+                    recordButton.disabled = true;
+                    stopButton.disabled = false;
+
+                    mediaRecorder.addEventListener('dataavailable', event => {
+                        audioChunks.push(event.data);
+                    });
+
+                    stopButton.addEventListener('click', () => {
+                        mediaRecorder.stop();
+                        recordButton.disabled = false;
+                        stopButton.disabled = true;
+                    });
+
+                    mediaRecorder.addEventListener('stop', () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const formData = new FormData();
+                        formData.append('audio', audioBlob, 'audio.webm');
+
+                        fetch('/process_audio/', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.error) {
+                                console.error('Error:', data.error);
+                                transcript.textContent = 'Error: ' + data.error;
+                            } else {
+                                transcript.textContent = data.transcript;
+                                audioOutput.src = data.audio_output_path;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            transcript.textContent = 'Error: ' + error.message;
+                        });
+
+                        audioChunks = [];
+                    });
+                })
+                .catch(error => {
+                    console.error('Error accessing audio:', error);
+                    transcript.textContent = 'Error accessing audio: ' + error.message;
+                });
+        });
+    </script>
+</body>
+</html>
