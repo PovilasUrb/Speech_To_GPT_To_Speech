@@ -3,10 +3,10 @@
 ## Demo
 
 ### Video demo
-[Video demo](./images/Video.mp4)
+https://github.com/PovilasUrb/Speech_To_GPT_To_Speech/assets/32778303/28bc21cb-4153-49e9-9485-11cd95bf8d96
 
 ### Backend requests
-![Requests](./images\requests.png)
+![Requests](./images/requests.png)
 
 ## Purpose
 To create a voice-controlled chatbot that can respond to customer queries in Lithuanian using Google Cloud platform tools.
